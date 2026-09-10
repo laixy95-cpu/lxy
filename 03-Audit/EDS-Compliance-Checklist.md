@@ -7,10 +7,29 @@ tags: [checklist, eds-revision]
 
 # EDS submission checklist
 
+## Block 0 — Reproducibility (do before anything else; everything depends on it)
+
+The uploaded code does not implement the manuscript's method and its recorded
+conclusion is the opposite of the headline finding. See
+[[Code-Manuscript-Reconciliation]].
+
+- [ ] **R1** Locate the version that produced the manuscript's numbers — the
+      "counterfactual specification module" named in Data Availability.
+- [ ] **R2** Confirm Table 3's indicator-specific counterfactuals are implemented
+      somewhere (logit `AccessElec`, pre-crisis mean `Inflation`, log-linear
+      `RenCap`, linear otherwise, fitted on **raw** values).
+- [ ] **R3** Confirm Tables 4 (intervals/ratios), 5, 6, 9 and Figs. 3–4 have a code path.
+- [ ] **R4** **Drop the 95% CIs and p-values**; lead with gap-to-RMSE. This resolves
+      A1, A11, R4 and reviewer R2#6 together.
+- [ ] **R5** Restore `MacroPricePressure` or justify "stability".
+- [ ] **R1#4** Add a sensitivity row: 2022–23 gap against a counterfactual refitted
+      through 2021, to quantify the base effect the reviewer raised.
+- [ ] Upload the six Excel inputs so the analysis can be run.
+
 Ordered so that each block can be finished independently. Estimates assume the
 analysis code is to hand.
 
-## Block 1 — Blocking corrections (do first; ~half a day)
+## Block 1 — Blocking corrections (~half a day)
 
 - [ ] **A1** Rewrite the uniqueness claim in **4 places** — Abstract, §4.1, §5
       opening, §6. Use gap-to-RMSE (0.86 vs 0.65 next), and concede that the
@@ -78,4 +97,5 @@ analysis code is to hand.
       (re-run `scripts/build_vault.py` — it reports orphans)
 - [ ] Abstract ≤250 words, body ≤7,000
 - [ ] No placeholders remain
-- [ ] Cover letter states the JCLP history if the journal asks
+- [ ] Cover letter states the JCLP history — draft in [[../06-Reviews/JCLP-Response-Map]]
+- [ ] Reproducibility package matches the manuscript (Block 0)
