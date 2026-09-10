@@ -85,6 +85,11 @@ class Spec:
     rationale: str
     ceiling: float | None = None
     feasible: tuple[float | None, float | None] = (None, None)  # (low, high)
+    # An exact 0.0 is outside the observed range of every indicator here except
+    # Inflation, so a zero denotes a missing observation rather than a measured
+    # one. The workbook codes unavailable crisis-year cells as 0 rather than
+    # blank, which `isna()`-based audits do not catch.
+    zero_is_missing: bool = True
 
     def fit(self, years, values, min_train: int = MIN_TRAIN):
         years = np.asarray(years, dtype=float)
@@ -128,7 +133,7 @@ SPECS: dict[str, Spec] = {
              ceiling=100.0, feasible=(0.0, 100.0)),
         Spec("Inflation", "mean", -1, 5, "MacroPricePressure",
              "Linear extrapolation implies deflation; window selected on backtest bias and RMSE",
-             feasible=(-1.0, None)),
+             feasible=(-1.0, None), zero_is_missing=False),
         Spec("RenTFEC", "linear", +1, 10, "LowCarbonContinuity",
              "Standard specification for a trending, unconstrained series",
              feasible=(0.0, 100.0)),

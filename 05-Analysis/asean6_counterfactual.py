@@ -325,19 +325,19 @@ def robustness(panel: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     `asean6_reproducible.py` uses as its MAIN model, so reporting it here also
     reconciles the two code bases."""
     params = scaling_params(panel, "zscore")
-    base_gaps, _ = indicator_gaps(panel, params)
+    base_gaps, _ = indicator_gaps(panel, params, enforce=False)
     base_dim, _ = dimension_gaps(base_gaps)
 
     variants: dict[str, pd.DataFrame] = {}
 
     mm = scaling_params(panel, "minmax")
-    g, _ = indicator_gaps(panel, mm)
+    g, _ = indicator_gaps(panel, mm, enforce=False)
     variants["Pre-crisis min-max scaling"] = dimension_gaps(g)[0]
 
     g, _ = indicator_gaps(panel, params, uniform_linear_specs(), enforce=False)
     variants["Uniform linear form (Table 3 replaced)"] = dimension_gaps(g)[0]
 
-    g, _ = indicator_gaps(panel, params, fixed_window_specs(5))
+    g, _ = indicator_gaps(panel, params, fixed_window_specs(5), enforce=False)
     variants["Five-year training window"] = dimension_gaps(g)[0]
 
     variants["2017-2019 mean baseline"] = level_baseline_gaps(panel, params, "2017-2019 mean")
@@ -372,7 +372,7 @@ def robustness(panel: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     loio = {}
     for ind in DIMENSIONS["LowCarbonContinuity"]:
         sub = {k: v for k, v in SPECS.items() if k != ind}
-        g, _ = indicator_gaps(panel[panel.indicator != ind], params, sub)
+        g, _ = indicator_gaps(panel[panel.indicator != ind], params, sub, enforce=False)
         d, _ = dimension_gaps(g)
         loio[ind] = float(d[(d.dimension == "LowCarbonContinuity") &
                             (d.stage == "Compound")].dimension_gap.mean())
@@ -394,15 +394,56 @@ def robustness(panel: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
 
 
 # ------------------------------------------------------------------ IO
-def load_panel(input_dir: Path) -> pd.DataFrame:
-    """Read the ETRI core workbook into long format (country, year, indicator, value)."""
+# Indicators whose physical domain is strictly positive. If these arrive entirely
+# non-positive, the workbook stores DIRECTION-ADJUSTED values (already multiplied
+# by -1) rather than raw ones, and the whole file follows that convention.
+POSITIVE_DOMAIN = ["TDLoss", "CO2IntElec", "EnergyIntensity"]
+
+
+def detect_direction_convention(core: pd.DataFrame) -> bool:
+    """True when the workbook already has each indicator's direction applied.
+
+    Table 2 says a negative indicator "is multiplied by -1 ONCE before
+    standardisation". If the file has already done that and the code applies
+    Eq. (1)'s d_j as well, the four negative-direction indicators are negated
+    twice and their contributions carry the wrong sign.
+    """
+    return all(bool((core[c] <= 0).all()) for c in POSITIVE_DOMAIN if c in core)
+
+
+def load_panel(input_dir: Path, direction_applied: bool | None = None,
+               zeros_as_missing: bool = True) -> pd.DataFrame:
+    """Read the ETRI core workbook into long format (country, year, indicator, value).
+
+    `direction_applied=None` auto-detects. When the workbook stores
+    direction-adjusted values they are restored to raw here, so that Eq. (1)
+    applies d_j exactly once, as Table 2 specifies.
+    """
     core = pd.read_excel(Path(input_dir) / "1 ETRI_Core data.xlsx", sheet_name="ETRI_core")
+    if direction_applied is None:
+        direction_applied = detect_direction_convention(core)
+    if direction_applied:
+        flipped = [i for i, sp in SPECS.items() if sp.direction == -1 and i in core]
+        core = core.copy()
+        core[flipped] = -core[flipped]
+        load_panel.restored = flipped
+    else:
+        load_panel.restored = []
     missing = [i for i in SPECS if i not in core.columns]
     if missing:
         raise KeyError(f"Core workbook is missing required indicators: {missing}")
     long = core.melt(id_vars=["country", "year"], value_vars=list(SPECS),
                      var_name="indicator", value_name="value")
     long["year"] = long.year.astype(int)
+    if zeros_as_missing:
+        mask = long.value.eq(0) & long.indicator.map(
+            {i: sp.zero_is_missing for i, sp in SPECS.items()})
+        load_panel.zeroed = (long[mask].groupby("indicator")
+                             .apply(lambda g: sorted(g.year.unique()), include_groups=False)
+                             .to_dict())
+        long.loc[mask, "value"] = np.nan
+    else:
+        load_panel.zeroed = {}
     bad = sorted(set(long.country) - set(COUNTRIES))
     if bad:
         raise ValueError(f"Unexpected countries: {bad}")
@@ -411,12 +452,17 @@ def load_panel(input_dir: Path) -> pd.DataFrame:
     return long
 
 
-def run(input_dir, output_root, with_intervals: bool = False) -> dict:
+def run(input_dir, output_root, with_intervals: bool = False,
+        corrections: bool = True) -> dict:
     out = Path(output_root)
     (out / "tables").mkdir(parents=True, exist_ok=True)
     panel = load_panel(input_dir)
+    correction_log = []
+    if corrections:
+        import data_corrections
+        panel, correction_log = data_corrections.apply(panel)
     params = scaling_params(panel)
-    gaps, diag = indicator_gaps(panel, params)
+    gaps, diag = indicator_gaps(panel, params, enforce=False)
     dim_long, dim_wide = dimension_gaps(gaps)
     contrib = decompose(gaps)
     reg = regional(dim_long, intervals=with_intervals)
@@ -449,6 +495,10 @@ def run(input_dir, output_root, with_intervals: bool = False) -> dict:
         specifications={k: asdict(v) for k, v in SPECS.items()},
         ratio_rule=RATIO_RULE, confidence_intervals_reported=with_intervals,
         decomposition_max_error=max_err,
+        direction_restored_to_raw=list(getattr(load_panel, 'restored', [])),
+        zeros_treated_as_missing={k: [int(y) for y in v]
+                                  for k, v in getattr(load_panel, 'zeroed', {}).items()},
+        data_corrections=correction_log,
         placebo_windows={f"{r.stage}/{r.dimension}": r.windows
                          for r in pl_test.itertuples()},
         robustness_extras=extras,
@@ -466,6 +516,9 @@ if __name__ == "__main__":
     ap.add_argument("--output-root", default="counterfactual_output")
     ap.add_argument("--with-intervals", action="store_true",
                     help="also emit Student-t cross-country intervals (see audit A11)")
+    ap.add_argument("--no-corrections", action="store_true",
+                    help="use the workbook exactly as supplied, uncorrected")
     a = ap.parse_args()
-    res = run(a.input_dir, a.output_root, a.with_intervals)
+    res = run(a.input_dir, a.output_root, a.with_intervals,
+              corrections=not a.no_corrections)
     print(json.dumps(res["manifest"]["robustness_extras"], indent=2, default=str))

@@ -1,0 +1,199 @@
+{
+  "generated_utc": "2026-09-10T08:15:48.125391+00:00",
+  "python": "3.11.15",
+  "origin": 2019,
+  "specifications": {
+    "TDLoss": {
+      "indicator": "TDLoss",
+      "form": "linear",
+      "direction": -1,
+      "window_len": 10,
+      "dimension": "EnergyServiceSecurity",
+      "rationale": "Standard specification for a trending, unconstrained series",
+      "ceiling": null,
+      "feasible": [
+        0.0,
+        null
+      ],
+      "zero_is_missing": true
+    },
+    "AccessElec": {
+      "indicator": "AccessElec",
+      "form": "logit",
+      "direction": 1,
+      "window_len": 10,
+      "dimension": "EnergyServiceSecurity",
+      "rationale": "Linear extrapolation yields expected access above the physical ceiling",
+      "ceiling": 100.0,
+      "feasible": [
+        0.0,
+        100.0
+      ],
+      "zero_is_missing": true
+    },
+    "Inflation": {
+      "indicator": "Inflation",
+      "form": "mean",
+      "direction": -1,
+      "window_len": 5,
+      "dimension": "MacroPricePressure",
+      "rationale": "Linear extrapolation implies deflation; window selected on backtest bias and RMSE",
+      "ceiling": null,
+      "feasible": [
+        -1.0,
+        null
+      ],
+      "zero_is_missing": false
+    },
+    "RenTFEC": {
+      "indicator": "RenTFEC",
+      "form": "linear",
+      "direction": 1,
+      "window_len": 10,
+      "dimension": "LowCarbonContinuity",
+      "rationale": "Standard specification for a trending, unconstrained series",
+      "ceiling": null,
+      "feasible": [
+        0.0,
+        100.0
+      ],
+      "zero_is_missing": true
+    },
+    "CO2IntElec": {
+      "indicator": "CO2IntElec",
+      "form": "linear",
+      "direction": -1,
+      "window_len": 10,
+      "dimension": "LowCarbonContinuity",
+      "rationale": "Standard specification for a trending, unconstrained series",
+      "ceiling": null,
+      "feasible": [
+        0.0,
+        null
+      ],
+      "zero_is_missing": true
+    },
+    "EnergyIntensity": {
+      "indicator": "EnergyIntensity",
+      "form": "linear",
+      "direction": -1,
+      "window_len": 10,
+      "dimension": "LowCarbonContinuity",
+      "rationale": "Standard specification for a trending, unconstrained series",
+      "ceiling": null,
+      "feasible": [
+        0.0,
+        null
+      ],
+      "zero_is_missing": true
+    },
+    "RenCap": {
+      "indicator": "RenCap",
+      "form": "loglinear",
+      "direction": 1,
+      "window_len": 10,
+      "dimension": "LowCarbonContinuity",
+      "rationale": "Deployment compounds once established, so growth is proportional and not additive",
+      "ceiling": null,
+      "feasible": [
+        0.0,
+        null
+      ],
+      "zero_is_missing": true
+    },
+    "RenElec": {
+      "indicator": "RenElec",
+      "form": "linear",
+      "direction": 1,
+      "window_len": 10,
+      "dimension": "LowCarbonContinuity",
+      "rationale": "Standard specification for a trending, unconstrained series",
+      "ceiling": null,
+      "feasible": [
+        0.0,
+        100.0
+      ],
+      "zero_is_missing": true
+    }
+  },
+  "ratio_rule": "mean of the rolling-origin RMSE at the two horizons the stage spans",
+  "confidence_intervals_reported": true,
+  "decomposition_max_error": 0.5109962050096234,
+  "direction_restored_to_raw": [
+    "TDLoss",
+    "Inflation",
+    "CO2IntElec",
+    "EnergyIntensity"
+  ],
+  "zeros_treated_as_missing": {
+    "EnergyIntensity": [
+      2022,
+      2023
+    ],
+    "RenTFEC": [
+      2022,
+      2023
+    ],
+    "TDLoss": [
+      2023
+    ]
+  },
+  "data_corrections": [
+    {
+      "correction": "CORRECTION 1",
+      "country": "Thailand",
+      "year": 2022,
+      "indicator": "Inflation",
+      "before": -1.61068030486688,
+      "after": 6.08,
+      "source": "World Bank WDI FP.CPI.TOTL.ZG"
+    },
+    {
+      "correction": "CORRECTION 1",
+      "country": "Thailand",
+      "year": 2023,
+      "indicator": "Inflation",
+      "before": 8.47805174421543,
+      "after": 1.23,
+      "source": "World Bank WDI FP.CPI.TOTL.ZG"
+    }
+  ],
+  "placebo_windows": {
+    "COVID/EnergyServiceSecurity": "2014-2015; 2015-2016; 2016-2017; 2017-2018; 2018-2019",
+    "Compound/EnergyServiceSecurity": "2016-2017; 2017-2018; 2018-2019",
+    "COVID/LowCarbonContinuity": "2014-2015; 2015-2016; 2016-2017; 2017-2018; 2018-2019",
+    "Compound/LowCarbonContinuity": "2016-2017; 2017-2018; 2018-2019",
+    "COVID/MacroPricePressure": "2014-2015; 2015-2016; 2016-2017; 2017-2018; 2018-2019",
+    "Compound/MacroPricePressure": "2016-2017; 2017-2018; 2018-2019"
+  },
+  "robustness_extras": {
+    "leave_one_country_out": {
+      "Indonesia": 0.1290382390749123,
+      "Malaysia": 0.3179225873871362,
+      "Philippines": 0.15985104259883687,
+      "Singapore": 0.12135247832916225,
+      "Thailand": 0.24908665855834813,
+      "Vietnam": -0.07505987664391565
+    },
+    "leave_one_country_out_range": [
+      -0.07505987664391565,
+      0.3179225873871362
+    ],
+    "sign_reversing_countries": [
+      "Vietnam"
+    ],
+    "leave_one_indicator_out": {
+      "RenTFEC": 0.15036518821741332,
+      "CO2IntElec": 0.10191633458605771,
+      "EnergyIntensity": 0.15036518821741332,
+      "RenCap": 0.21849474213130513,
+      "RenElec": 0.1306844879348772
+    },
+    "leave_one_indicator_out_range": [
+      0.10191633458605771,
+      0.21849474213130513
+    ],
+    "main_lowcarbon_compound": 0.15036518821741332
+  },
+  "inadmissible_under_uniform_linear": 1
+}

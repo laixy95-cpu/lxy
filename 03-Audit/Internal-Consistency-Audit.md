@@ -21,39 +21,37 @@ Severity: 🔴 critical (blocks submission) · 🟠 major (reviewer will raise i
 
 ---
 
-## 🔴 A1 — The paper's central uniqueness claim is false as written
+## ✅ A1 — WITHDRAWN. The claim is true; the table supporting it is wrong
 
-Stated in four places — Abstract (L5), §4.1 (L136), §5 opening (L268), §6 (L295):
+I first reported the uniqueness claim as false. **Running the rebuilt pipeline on
+the real data shows it is true** — see [[Data-Validation-Report#A1]].
 
-> "macro-price stability … **the only regional estimate whose cross-country
-> interval excludes zero and which is more extreme than every pre-crisis
-> placebo window**"
+Under §3.6's placebo design (five COVID windows — see A2) the energy-service/COVID
+window **2014–2015** returns −0.1234, more extreme than the observed −0.0776. So
+energy-service/COVID does not beat every placebo, and testing both criteria
+together leaves exactly one estimate — macro-price/compound — as the manuscript says.
 
-Your own Table 4 and Table 9 contradict this. Energy-service security in the
-COVID-19 stage satisfies **both** conditions:
+**But Table 9 as printed contradicts it**: it reports three COVID windows spanning
+−0.026 to +0.044, which omits the 2014–2015 window. Against that table the claim
+reads as false, and that is the table a referee will check.
 
-| Test | Macro-price / compound | Energy-service / COVID |
-|---|---|---|
-| Gap | −0.767 | −0.077 |
-| Cross-country 95% CI | [−1.508, −0.026] — excludes 0 | [−0.125, −0.029] — **also excludes 0** |
-| Placebo range | +0.630 to +0.925 → gap below all | −0.026 to +0.044 → **gap below all** |
-| Placebo p | 0.250 (= floor) | **0.250 (= floor)** |
+**Action: keep the claim, fix Table 9** (see A2/A3). Add one clause noting the
+criteria are conjunctive and that the COVID energy-service interval also excludes
+zero on its own.
 
-So the conjunction is not unique to macro-price stability. This is the first
-thing a careful referee will check, and it undercuts the abstract's main claim.
+---
 
-**Fix — you already have the defensible version.** The gap-to-RMSE ratio *is*
-unique: 0.86 for macro-price/compound is the largest of all six
-stage × dimension cells (0.65, 0.54, 0.14, 0.86, 0.14, 0.23). Restate as:
+## 🔴 A18 — Table 3's `TDLoss` assignment produces negative losses for Singapore
 
-> "…the largest deviation relative to the forecast error of its own benchmark
-> (0.86 of RMSE, against 0.65 for the next largest), and the only estimate that
-> is simultaneously large in absolute terms, bounded away from zero across
-> countries, and more extreme than every pre-crisis placebo window."
+`TDLoss` is assigned a linear trend as "Secular decline, far from bounds", but
+Singapore falls 4.91% → 1.03% over 2010–2019 and the fitted path reaches
+**−0.19% in 2022 and −0.49% in 2023**. The feasibility check described in the
+Table 3 notes tests access, capacity and deflation — **not negative losses** — so
+it does not fire.
 
-Then add one honest sentence in §4.1 noting that the COVID-stage energy-service
-interval also excludes zero but is an order of magnitude smaller. Conceding this
-yourself is far cheaper than having a referee find it.
+Switching to log-linear removes the infeasibility and moves Singapore's
+energy-service gap from −0.109 to **+0.068** (sign flip); regional −0.054 → −0.007.
+Full table in [[Data-Validation-Report#A18]].
 
 ---
 

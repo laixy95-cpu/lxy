@@ -18,7 +18,8 @@ tags and YAML frontmatter all resolve.
 | [[03-Audit/EDS-Compliance-Checklist]] | Ordered work blocks with estimates |
 | [[02-Literature/_Index]] | 42 references in priority order |
 | [[04-Journal/EDS-Requirements]] | Journal specs vs current manuscript |
-| **[[03-Audit/Code-Manuscript-Reconciliation]]** | 🔴 The code does not implement the manuscript's method |
+| **[[03-Audit/Data-Validation-Report]]** | ✅ The method reproduces; the data file is the problem |
+| [[03-Audit/Code-Manuscript-Reconciliation]] | The supplied code does not implement the manuscript's method |
 | [[06-Reviews/JCLP-Response-Map]] | What the JCLP reviewers asked and what the revision did |
 
 ## The workflow this implements
@@ -51,7 +52,8 @@ tags and YAML frontmatter all resolve.
 02-Literature/     42 notes + _Index (priority-ordered)
 03-Audit/          consistency audit, code reconciliation, verification queue, checklist
 04-Journal/        target-journal specification
-05-Analysis/       author's analysis code (asean6_reproducible.py, Colab notebook)
+05-Analysis/       rebuilt pipeline (counterfactual_spec, asean6_counterfactual) + author's code
+07-Results/        pipeline output: all tables + run manifest
 06-Reviews/        JCLP reviewer reports + response map
 scripts/           extract_docx.py, build_vault.py, verify_numbers.py
 ```
