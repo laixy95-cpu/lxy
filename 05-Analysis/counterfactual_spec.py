@@ -125,8 +125,13 @@ class Spec:
 # deflation below -1 per cent.
 SPECS: dict[str, Spec] = {
     s.indicator: s for s in [
-        Spec("TDLoss", "linear", -1, 10, "EnergyServiceSecurity",
-             "Standard specification for a trending, unconstrained series",
+        # Audit A18: Table 3 assigns a linear trend on the grounds that the series
+        # is "far from bounds", but Singapore falls from 4.91% to 1.03% over
+        # 2010-2019 and a linear path reaches -0.49% by 2023. Losses are bounded
+        # below at zero, so the log-linear form applies for the same reason it
+        # applies to RenCap: proportional, not additive, change.
+        Spec("TDLoss", "loglinear", -1, 10, "EnergyServiceSecurity",
+             "Bounded below at zero; Singapore approaches the bound and a linear path goes negative",
              feasible=(0.0, None)),
         Spec("AccessElec", "logit", +1, 10, "EnergyServiceSecurity",
              "Linear extrapolation yields expected access above the physical ceiling",
@@ -188,3 +193,36 @@ def training_years(origin: int, window_len: int, first_year: int = 2010) -> list
     defines every rolling-origin refit.
     """
     return list(range(max(first_year, origin - window_len + 1), origin + 1))
+
+
+# ------------------------------------------------- low-carbon indicator basis
+# UN SDG 7.2.1 (RenTFEC) and 7.3.1 (EnergyIntensity) are published only through
+# 2022 - confirmed against Tracking SDG7: The Energy Progress Report 2025 - so
+# neither can cover 2023. The compound stage spans 2022-2023, so a five-indicator
+# low-carbon dimension would average different indicator sets in the two years of
+# the same stage, and the stage-to-stage reordering in Eq. (5) would compare a
+# five-indicator COVID mean against a mixed compound mean.
+#
+# The main specification therefore uses the three indicators available in every
+# year of the panel. The five-indicator version is retained as a robustness check
+# over the years where all five exist.
+LOWCARBON_CORE = ["CO2IntElec", "RenCap", "RenElec"]
+LOWCARBON_SDG = ["RenTFEC", "EnergyIntensity"]        # coverage ends in 2022
+
+
+def active_specs(lowcarbon_basis: str = "core") -> dict[str, Spec]:
+    """`core` = the three low-carbon indicators with full 2010-2023 coverage;
+    `full` = all five, valid only where SDG coverage reaches."""
+    if lowcarbon_basis == "full":
+        return dict(SPECS)
+    if lowcarbon_basis != "core":
+        raise ValueError(lowcarbon_basis)
+    return {k: v for k, v in SPECS.items()
+            if v.dimension != "LowCarbonContinuity" or k in LOWCARBON_CORE}
+
+
+def dimensions_of(specs: dict[str, Spec]) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for s in specs.values():
+        out.setdefault(s.dimension, []).append(s.indicator)
+    return out

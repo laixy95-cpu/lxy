@@ -1,8 +1,8 @@
 ﻿check,n_cells,pearson,spearman,sign_agreement,sign_agreement_basis,regional_lowcarbon_compound
-Pre-crisis min-max scaling,36,0.9524601237491778,0.9915057915057914,1.0,36 country x dimension x stage gaps,0.041571104890178415
-Uniform linear form (Table 3 replaced),36,0.8100647463594267,0.8131274131274132,0.8888888888888888,36 country x dimension x stage gaps,0.2936311947205852
-Five-year training window,36,0.9536293995468365,0.8610038610038611,0.8611111111111112,36 country x dimension x stage gaps,0.24458481715038696
-2017-2019 mean baseline,36,0.7765710294979058,0.38404118404118404,0.5,36 country x dimension x stage gaps,0.48884268301037626
-2019 level baseline,36,0.7782254539457405,0.3853281853281854,0.5833333333333334,36 country x dimension x stage gaps,0.5195195418320326
+Pre-crisis min-max scaling,36,0.952955637690623,0.9961389961389963,1.0,36 country x dimension x stage gaps,0.041571104890178415
+Uniform linear form (Table 3 replaced),36,0.8179305553104889,0.8095238095238096,0.8055555555555556,36 country x dimension x stage gaps,0.2936311947205852
+Five-year training window,36,0.9519793328322972,0.804890604890605,0.8888888888888888,36 country x dimension x stage gaps,0.24458481715038696
+2017-2019 mean baseline,36,0.8780431163754528,0.5166023166023166,0.5555555555555556,36 country x dimension x stage gaps,0.44817105124083517
+2019 level baseline,36,0.8719680582094227,0.5405405405405406,0.6388888888888888,36 country x dimension x stage gaps,0.47115956358904015
 Leave one country out,6,,,,range across six exclusions,
-Leave one indicator out,5,,,,range across five exclusions,
+Leave one indicator out,3,,,,range across five exclusions,

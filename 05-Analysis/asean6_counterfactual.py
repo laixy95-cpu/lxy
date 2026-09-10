@@ -41,9 +41,13 @@ import pandas as pd
 from scipy import stats
 
 from counterfactual_spec import (
-    MIN_TRAIN, SPECS, DIMENSIONS, InfeasibleCounterfactual, Spec,
-    fixed_window_specs, training_years, uniform_linear_specs,
+    LOWCARBON_CORE, MIN_TRAIN, SPECS, DIMENSIONS, InfeasibleCounterfactual, Spec,
+    active_specs, dimensions_of, fixed_window_specs, training_years,
+    uniform_linear_specs,
 )
+
+# Main specification: the low-carbon indicators with complete 2010-2023 coverage.
+MAIN_SPECS = active_specs("core")
 
 COUNTRIES = ["Indonesia", "Malaysia", "Philippines", "Singapore", "Thailand", "Vietnam"]
 YEARS = list(range(2010, 2024))
@@ -65,7 +69,7 @@ T_DF, T_CRIT = 5, 2.570582  # Student-t, df = 5
 # ------------------------------------------------------------------ Eq. (1)
 def scaling_params(panel: pd.DataFrame, method: str = "zscore") -> pd.DataFrame:
     """Fixed reference distribution: pooled ASEAN-6, 2010-2019, 60 obs/indicator."""
-    pre = panel[panel.year.between(*PRE)]
+    pre = panel[panel.year.between(*PRE) & panel.indicator.isin(MAIN_SPECS)]
     rows = []
     for ind, g in pre.groupby("indicator"):
         v = g.value.dropna()
@@ -92,7 +96,7 @@ def indicator_gaps(panel: pd.DataFrame, params: pd.DataFrame,
                    eval_years: list[int] = None, enforce: bool = True,
                    min_train: int = MIN_TRAIN) -> pd.DataFrame:
     """Counterfactual fitted on raw values over the trailing window, then standardised."""
-    specs = specs or SPECS
+    specs = specs or MAIN_SPECS
     eval_years = eval_years or [y for y in YEARS if y > origin]
     rows, diag = [], []
     for country in COUNTRIES:
@@ -150,9 +154,10 @@ def dimension_gaps(gaps: pd.DataFrame) -> pd.DataFrame:
 
 
 # ------------------------------------------------- Eq. (6) decomposition
-def decompose(gaps: pd.DataFrame, dimension: str = "LowCarbonContinuity") -> pd.DataFrame:
+def decompose(gaps: pd.DataFrame, dimension: str = "LowCarbonContinuity",
+              specs: dict[str, Spec] = None) -> pd.DataFrame:
     """Indicator contributions that sum exactly to the dimension gap."""
-    n = len(DIMENSIONS[dimension])
+    n = len(dimensions_of(specs or MAIN_SPECS)[dimension])
     g = gaps[gaps.dimension == dimension].assign(stage=lambda d: d.year.map(_stage_of))
     g = g.dropna(subset=["stage"])
     return (g.groupby(["country", "indicator", "stage"], as_index=False)
@@ -183,7 +188,7 @@ def backtest(panel: pd.DataFrame, params: pd.DataFrame,
              specs: dict[str, Spec] = None, origins=range(2014, 2019),
              horizons=(1, 2, 3, 4)) -> pd.DataFrame:
     """Tashman (2000) rolling origin; every evaluation year stays inside 2010-2019."""
-    specs = specs or SPECS
+    specs = specs or MAIN_SPECS
     recs = []
     for origin in origins:
         ev = [origin + h for h in horizons if origin + h <= PRE[1]]
@@ -246,7 +251,7 @@ def placebo(panel: pd.DataFrame, params: pd.DataFrame,
     which still has MIN_TRAIN training observations. Each window is named, which
     is what Table 9 fails to do (audit A3).
     """
-    specs = specs or SPECS
+    specs = specs or MAIN_SPECS
     rows = []
     for stage, (h1, h2) in STAGE_HORIZONS.items():
         for origin in range(PRE[0] + min_train - 1, PRE[1] + 1):
@@ -293,9 +298,9 @@ def placebo_test(pl: pd.DataFrame, reg: pd.DataFrame) -> pd.DataFrame:
 # ---------------------------------------------------------- robustness
 def _dimension_scores(panel: pd.DataFrame, params: pd.DataFrame) -> pd.DataFrame:
     """Eq. (2): equal-weighted mean of standardised indicators."""
-    p = panel.copy()
+    p = panel[panel.indicator.isin(MAIN_SPECS)].copy()
     p["z"] = [float(_std(v, i, params)) for v, i in zip(p.value, p.indicator)]
-    p["dimension"] = p.indicator.map({i: s.dimension for i, s in SPECS.items()})
+    p["dimension"] = p.indicator.map({i: s.dimension for i, s in MAIN_SPECS.items()})
     return (p.groupby(["country", "year", "dimension"], as_index=False)
              .z.mean().rename(columns={"z": "score"}))
 
@@ -334,10 +339,12 @@ def robustness(panel: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     g, _ = indicator_gaps(panel, mm, enforce=False)
     variants["Pre-crisis min-max scaling"] = dimension_gaps(g)[0]
 
-    g, _ = indicator_gaps(panel, params, uniform_linear_specs(), enforce=False)
+    ul = {k: v for k, v in uniform_linear_specs().items() if k in MAIN_SPECS}
+    g, _ = indicator_gaps(panel, params, ul, enforce=False)
     variants["Uniform linear form (Table 3 replaced)"] = dimension_gaps(g)[0]
 
-    g, _ = indicator_gaps(panel, params, fixed_window_specs(5), enforce=False)
+    fw = {k: v for k, v in fixed_window_specs(5).items() if k in MAIN_SPECS}
+    g, _ = indicator_gaps(panel, params, fw, enforce=False)
     variants["Five-year training window"] = dimension_gaps(g)[0]
 
     variants["2017-2019 mean baseline"] = level_baseline_gaps(panel, params, "2017-2019 mean")
@@ -370,8 +377,8 @@ def robustness(panel: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
                      regional_lowcarbon_compound=np.nan))
 
     loio = {}
-    for ind in DIMENSIONS["LowCarbonContinuity"]:
-        sub = {k: v for k, v in SPECS.items() if k != ind}
+    for ind in LOWCARBON_CORE:
+        sub = {k: v for k, v in MAIN_SPECS.items() if k != ind}
         g, _ = indicator_gaps(panel[panel.indicator != ind], params, sub, enforce=False)
         d, _ = dimension_gaps(g)
         loio[ind] = float(d[(d.dimension == "LowCarbonContinuity") &
@@ -502,7 +509,7 @@ def run(input_dir, output_root, with_intervals: bool = False,
         placebo_windows={f"{r.stage}/{r.dimension}": r.windows
                          for r in pl_test.itertuples()},
         robustness_extras=extras,
-        inadmissible_under_uniform_linear=int((~diag.admissible).sum()),
+        inadmissible_fits_main_spec=int((~diag.admissible).sum()),
     )
     (out / "run_manifest.json").write_text(
         json.dumps(manifest, indent=2, default=str), encoding="utf-8")

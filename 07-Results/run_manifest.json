@@ -1,15 +1,15 @@
 {
-  "generated_utc": "2026-09-10T08:15:48.125391+00:00",
+  "generated_utc": "2026-09-10T08:36:10.442530+00:00",
   "python": "3.11.15",
   "origin": 2019,
   "specifications": {
     "TDLoss": {
       "indicator": "TDLoss",
-      "form": "linear",
+      "form": "loglinear",
       "direction": -1,
       "window_len": 10,
       "dimension": "EnergyServiceSecurity",
-      "rationale": "Standard specification for a trending, unconstrained series",
+      "rationale": "Bounded below at zero; Singapore approaches the bound and a linear path goes negative",
       "ceiling": null,
       "feasible": [
         0.0,
@@ -118,7 +118,7 @@
   },
   "ratio_rule": "mean of the rolling-origin RMSE at the two horizons the stage spans",
   "confidence_intervals_reported": true,
-  "decomposition_max_error": 0.5109962050096234,
+  "decomposition_max_error": 2.220446049250313e-16,
   "direction_restored_to_raw": [
     "TDLoss",
     "Inflation",
@@ -183,9 +183,7 @@
       "Vietnam"
     ],
     "leave_one_indicator_out": {
-      "RenTFEC": 0.15036518821741332,
       "CO2IntElec": 0.10191633458605771,
-      "EnergyIntensity": 0.15036518821741332,
       "RenCap": 0.21849474213130513,
       "RenElec": 0.1306844879348772
     },
@@ -195,5 +193,5 @@
     ],
     "main_lowcarbon_compound": 0.15036518821741332
   },
-  "inadmissible_under_uniform_linear": 1
+  "inadmissible_fits_main_spec": 0
 }
