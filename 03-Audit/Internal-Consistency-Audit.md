@@ -76,18 +76,34 @@ prices through to consumers."
 
 ---
 
-## 🟠 A2 — Methods and Results disagree on the number of placebo windows
+## 🟠 A2 — Methods and Results disagree on the number of placebo windows — **RESOLVED**
 
 | | Placebo windows | p-value floor |
 |---|---|---|
 | §3.6 (L127) | **5** at COVID horizon, **3** at compound | "0.167 and 0.250 as its respective floors" |
 | §4.6 (L232) + Table 9 | **3** for each stage | 0.250 everywhere |
 
-Both cannot be right. Table 9 prints "floor 0.250" on all six rows, so §3.6 is
-likely the stale text. Also §3.6 contains a literal gap: "With&nbsp;&nbsp;windows
-the smallest attainable p-value is 1/(k + 1)" — the *k* is missing.
+**Settled by construction.** The number of admissible placebo windows depends only
+on the year grid and the minimum training length, not on the data
+(`placebo_window_geometry()` in [[../05-Analysis/asean6_counterfactual.py]]):
 
----
+| min. training obs | COVID | Compound |
+|---|---|---|
+| 3 | 6 | 4 |
+| **4** | **5** | **3** |
+| 5 | 4 | 2 |
+| 6 | 3 | 1 |
+
+§3.6's counts and both its floors — 1/(5+1) = 0.167 and 1/(3+1) = 0.250 — are
+reproduced by, and only by, a **four-observation minimum**. §4.6's "three for each
+stage" is produced by **no** rule: the design cannot give three at both horizons.
+
+**Therefore §3.6 is correct and §4.6 plus Table 9 are wrong.** Restate §4.6 as five
+COVID windows (floor 0.167) and three compound windows (floor 0.250), and correct
+Table 9's floor column accordingly.
+
+Also fix the literal gap in §3.6: "With&nbsp;&nbsp;windows the smallest attainable
+p-value is 1/(k + 1)" — the *k* is missing.
 
 ## 🟠 A3 — Table 9 prints the same placebo window for every row
 

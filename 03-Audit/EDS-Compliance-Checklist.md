@@ -13,18 +13,22 @@ The uploaded code does not implement the manuscript's method and its recorded
 conclusion is the opposite of the headline finding. See
 [[Code-Manuscript-Reconciliation]].
 
-- [ ] **R1** Locate the version that produced the manuscript's numbers — the
-      "counterfactual specification module" named in Data Availability.
-- [ ] **R2** Confirm Table 3's indicator-specific counterfactuals are implemented
-      somewhere (logit `AccessElec`, pre-crisis mean `Inflation`, log-linear
-      `RenCap`, linear otherwise, fitted on **raw** values).
-- [ ] **R3** Confirm Tables 4 (intervals/ratios), 5, 6, 9 and Figs. 3–4 have a code path.
+- [x] ~~**R1/R2/R3** Locate or rebuild the counterfactual specification module~~ —
+      **built**: [[../05-Analysis/counterfactual_spec.py]] and
+      [[../05-Analysis/asean6_counterfactual.py]] implement Table 3, Eqs. (1)–(6),
+      the rolling-origin backtest, placebo windows and all seven robustness variants.
+- [ ] **Upload the six Excel inputs**, then run:
+      `python3 asean6_counterfactual.py --input-dir <dir> --output-root out`
+- [ ] Run `validate_against_manuscript.py` — it checks every printed value in
+      Tables 4, 5, 8, 9 and §4.2 and reports which survive.
+- [ ] Act on the validator's A1 verdict: it lists every regional estimate whose
+      interval excludes zero. The manuscript claims exactly one.
 - [ ] **R4** **Drop the 95% CIs and p-values**; lead with gap-to-RMSE. This resolves
       A1, A11, R4 and reviewer R2#6 together.
 - [ ] **R5** Restore `MacroPricePressure` or justify "stability".
 - [ ] **R1#4** Add a sensitivity row: 2022–23 gap against a counterfactual refitted
-      through 2021, to quantify the base effect the reviewer raised.
-- [ ] Upload the six Excel inputs so the analysis can be run.
+      through 2021, to quantify the base effect the reviewer raised
+      (`indicator_gaps(..., origin=2021)` gives this directly).
 
 Ordered so that each block can be finished independently. Estimates assume the
 analysis code is to hand.
@@ -45,9 +49,13 @@ analysis code is to hand.
 
 ## Block 2 — Needs a code re-run (~1 day)
 
-- [ ] **A4** Run the uniform-linear-form robustness check and add it to Table 8.
-- [ ] **A3** Replace the identical "2016–2018" placebo label with the actual
-      windows and fitting origins per row.
+- [ ] **A4** Add the uniform-linear row to Table 8 — `uniform_linear_specs()`
+      produces it, and it is also what `asean6_reproducible.py` uses as its main
+      model, so one row reconciles both code bases.
+- [x] ~~**A2** placebo window counts~~ — **settled**: §3.6 (5 and 3, floors 0.167
+      and 0.250) is correct; §4.6 and Table 9 are wrong. Correct them.
+- [ ] **A3** Replace the identical "2016–2018" placebo label with the named windows
+      the pipeline now reports (2014–2015 … 2018–2019).
 - [ ] **NV1** Split Vietnam's 2020 capacity addition into FIT1-extension vs new
       FIT2 rooftop volume — or reframe §5.4 (see outline).
 - [ ] **NV2** Confirm whether `RenCap` includes large hydro; state it in Table 2;
