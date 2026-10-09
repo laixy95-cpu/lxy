@@ -1,0 +1,53 @@
+== PANEL AUDIT ==
+                                         check        value  brief_says matches_brief
+                                     file rows 3.008000e+03         NaN              
+                                file iso codes 2.320000e+02         NaN              
+                          duplicate (iso,year) 0.000000e+00         0.0           yes
+                          analysis-sample rows 2.532000e+03      2532.0           yes
+                     analysis-sample countries 1.970000e+02       197.0           yes
+                                          OECD 3.800000e+01        38.0           yes
+                                      BRI-ever 1.480000e+02       148.0           yes
+                             OECD and BRI-ever 1.900000e+01         NaN              
+                                       neither 3.000000e+01        30.0           yes
+                          subregions in sample 1.700000e+01         NaN              
+                  min countries in a subregion 2.000000e+00         NaN              
+                 max |gen - (fossil+lowc)| TWh 4.547474e-13         0.0           yes
+                   max |identity residual| TWh 4.547474e-13         0.0           yes
+                    re_imp_chn zeros in sample 1.400000e+01         NaN              
+re_imp_chn == sum of 4 products (max abs diff) 1.862645e-09         NaN              
+
+== Electricity identity: first-difference magnitudes (analysis sample, TWh) ==
+      term  mean_abs_delta_twh  share_nonzero
+        sw               1.054          0.505
+demand_twh               2.723          0.888
+    netimp               1.022          0.586
+fossil_twh               2.947          0.805
+ hydro_twh               1.268          0.646
+   nuclear               0.641          0.154
+   oth_ren               0.178          0.386
+
+window 2013-2024: 2338 rows, 197 countries (before BACI/WDI merge)
+
+Dropped isos by reason:
+drop_reason
+no electricity generation series    19
+no imports-from-China series        14
+no co2 series                        2
+
+In-sample country-years by year:
+year
+2012    194
+2013    194
+2014    196
+2015    196
+2016    195
+2017    195
+2018    196
+2019    197
+2020    196
+2021    195
+2022    194
+2023    195
+2024    189
+
+wrote data/built/panel_analysis_sample.csv (2532 rows)

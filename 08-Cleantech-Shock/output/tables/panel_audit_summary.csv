@@ -1,0 +1,16 @@
+check,value,brief_says,matches_brief
+file rows,3008.0,,
+file iso codes,232.0,,
+"duplicate (iso,year)",0.0,0.0,yes
+analysis-sample rows,2532.0,2532.0,yes
+analysis-sample countries,197.0,197.0,yes
+  OECD,38.0,38.0,yes
+  BRI-ever,148.0,148.0,yes
+  OECD and BRI-ever,19.0,,
+  neither,30.0,30.0,yes
+subregions in sample,17.0,,
+min countries in a subregion,2.0,,
+max |gen - (fossil+lowc)| TWh,4.547473508864641e-13,0.0,yes
+max |identity residual| TWh,4.547473508864641e-13,0.0,yes
+re_imp_chn zeros in sample,14.0,,
+re_imp_chn == sum of 4 products (max abs diff),1.862645149230957e-09,,
